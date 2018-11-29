@@ -12,11 +12,48 @@
 		</script>
 	</head>
 	<body>
+		<header class="mui-bar mui-bar-nav">
+			<h1 class="mui-title">视频下载</h1>
+		</header>
+		<div class="mui-content">
+			<textarea id="url-inp" rows="5" cols="">
+				
+			</textarea>
+			<button id="dzjx-btn" type="button" class="mui-btn mui-btn-blue mui-btn-block">地址解析</button>
+			<button id="delete-btn" type="button" class="mui-btn mui-btn-red mui-btn-block">清空</button>
+		</div>
+		<script type="text/javascript">
+			var $dzjxBtn = $('#dzjx-btn')
+			var $urlInp = $('#url-inp')
+			var _thisUrl = ''
+			$urlInp.val('')
+			$('#delete-btn').on('tap',function(){
+				$urlInp.val('')
+			})
+			mui.plusReady(function () {
+					$dzjxBtn.on('tap',function(){
+						if ($urlInp.val() == '') {
+							mui.alert('请输入地址')
+							return
+						}
+						console.log('mp')
+						plus.storage.setItem('video-url', 'videoUrl')
+						var videoUrl = getQueryValue('u')
+						if (videoUrl) {
+							//下载的地址
+							console.log(videoUrl)
+						} else {
+							test1($urlInp.val())
+						}
+					}) 
+			})
+		</script>
 		<script type="text/javascript">
 			function dd() {
 				var url = plus.storage.getItem('video-url')
 				console.log('解析完成', url)
 				//下载
+				return;
 				player = plus.video.createVideoPlayer('videoplayer', {
 					src: url,
 					top: '100px',
@@ -26,25 +63,27 @@
 					position: 'static'
 				});
 				plus.webview.currentWebview().append(player);
-				$('video source').attr('src', url)
-			}
-			mui.plusReady(function() {
-				console.log('mp')
-				plus.storage.setItem('video-url', 'videoUrl')
-				var videoUrl = getQueryValue('u')
-				if (videoUrl) {
-					//下载的地址
-					console.log(videoUrl)
-				} else {
-					test1()
-				}
-			})
+				var dtask = plus.downloader.createDownload(url, {}, function(d, status) {
+					// 下载完成
+					if (status == 200) {
+						var fileName = d.filename
+						console.log('下载完成，路劲：',fileName)
+						plus.gallery.save(fileName, function() {
+							alert("保存图片到相册成功");
+						});
+					} else {
+						alert("Download failed: " + status);
+					}
+				});
+				//dtask.addEventListener("statechanged", onStateChanged, false);
+				dtask.start();
 
-			function test1() {
+			}
+			function test1(url) {
 				const js1 =
 					`
 				var _this = {
-					url: 'https://www.365yg.com/a6628870476011670788#mid=1597448968934414'
+					url: url
 				}
 				var jqScript = document.createElement('script')
 				jqScript.onload = function() {
